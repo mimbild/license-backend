@@ -6,6 +6,7 @@ import { logger } from "./config/logger";
 import { apiRouter } from "./routes";
 import { errorHandler } from "./middleware/error-handler";
 import { notFoundHandler } from "./middleware/not-found";
+import { publicRouter } from "./routes/public.routes";
 
 export function createApp() {
   const app = express();
@@ -30,6 +31,7 @@ export function createApp() {
   );
 
   app.use(express.json({ limit: "1mb" }));
+  app.use(express.urlencoded({ extended: false }));
 
   app.get("/health", (_req, res) => {
     res.status(200).json({
@@ -40,6 +42,7 @@ export function createApp() {
     });
   });
 
+  app.use(publicRouter);
   app.use("/api", apiRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);

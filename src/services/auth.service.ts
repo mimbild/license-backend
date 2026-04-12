@@ -121,18 +121,9 @@ export async function completePasswordSetup(input: {
   password: string;
   name?: string;
 }) {
-  const tokenHash = hashSetupToken(input.token);
+  const record = await findValidPasswordSetupRecord(input.token);
 
-  const record = await prisma.passwordSetupToken.findUnique({
-    where: {
-      tokenHash,
-    },
-    include: {
-      user: true,
-    },
-  });
-
-  if (!record || record.usedAt || record.expiresAt.getTime() < Date.now()) {
+  if (!record) {
     throw new ApiError(400, "INVALID_SETUP_TOKEN", "Invalid or expired password setup token");
   }
 
@@ -185,6 +176,42 @@ export async function issuePasswordSetupForUser(userId: string) {
   return requestPasswordSetup({
     email: user.email,
   });
+}
+
+export async function getPasswordSetupTokenStatus(token: string) {
+  const record = await findValidPasswordSetupRecord(token);
+
+  if (!record) {
+    return {
+      valid: false,
+    } as const;
+  }
+
+  return {
+    valid: true,
+    email: record.user.email,
+    name: record.user.name,
+    expiresAt: record.expiresAt,
+  } as const;
+}
+
+async function findValidPasswordSetupRecord(token: string) {
+  const tokenHash = hashSetupToken(token);
+
+  const record = await prisma.passwordSetupToken.findUnique({
+    where: {
+      tokenHash,
+    },
+    include: {
+      user: true,
+    },
+  });
+
+  if (!record || record.usedAt || record.expiresAt.getTime() < Date.now()) {
+    return null;
+  }
+
+  return record;
 }
 
 function hashSetupToken(token: string) {
