@@ -6,6 +6,7 @@ import { logger } from "./config/logger";
 import { apiRouter } from "./routes";
 import { errorHandler } from "./middleware/error-handler";
 import { notFoundHandler } from "./middleware/not-found";
+import { portalRouter } from "./routes/portal.routes";
 import { publicRouter } from "./routes/public.routes";
 
 export function createApp() {
@@ -42,6 +43,7 @@ export function createApp() {
     });
   });
 
+  app.use(portalRouter);
   app.use(publicRouter);
   app.use("/api", apiRouter);
   app.use(notFoundHandler);
