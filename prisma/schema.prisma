@@ -1,0 +1,277 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum LicenseStatus {
+  PENDING
+  ACTIVE
+  GRACE
+  INACTIVE
+  REVOKED
+}
+
+enum DeviceActivationStatus {
+  ACTIVE
+  RELEASED
+  BLOCKED
+}
+
+enum WebhookProcessingStatus {
+  RECEIVED
+  PROCESSED
+  FAILED
+  IGNORED
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum BillingProvider {
+  SQUARESPACE
+  APPLE_APP_STORE
+  GOOGLE_PLAY
+  MANUAL
+  SEED
+}
+
+model User {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  passwordHash    String
+  role            UserRole       @default(CUSTOMER)
+  name            String?
+  trialEndsAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  subscriptions   Subscription[]
+  entitlements    Entitlement[]
+  licenses        License[]
+  emailLogs       EmailLog[]
+  passwordSetupTokens PasswordSetupToken[]
+}
+
+model Product {
+  id                String        @id @default(cuid())
+  slug              String        @unique
+  name              String
+  description       String?
+  isBundle          Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  plans             Plan[]
+  entitlements      Entitlement[]
+  licenses          License[]
+  childBundleItems  BundleItem[]  @relation("BundleChild")
+  parentBundleItems BundleItem[]  @relation("BundleParent")
+}
+
+model BundleItem {
+  id              String   @id @default(cuid())
+  bundleProductId String
+  childProductId  String
+  createdAt       DateTime @default(now())
+  bundleProduct   Product  @relation("BundleParent", fields: [bundleProductId], references: [id], onDelete: Cascade)
+  childProduct    Product  @relation("BundleChild", fields: [childProductId], references: [id], onDelete: Cascade)
+
+  @@unique([bundleProductId, childProductId])
+}
+
+model Plan {
+  id                String            @id @default(cuid())
+  slug              String            @unique
+  name              String
+  productId         String
+  seatsIncluded     Int               @default(1)
+  trialDaysOverride Int?
+  graceDaysOverride Int?
+  isRecurring       Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  product           Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+  subscriptions     Subscription[]
+  externalRefs      PlanExternalRef[]
+}
+
+model PlanExternalRef {
+  id                 String          @id @default(cuid())
+  planId             String
+  provider           BillingProvider
+  externalProductId  String?
+  externalVariantId  String?
+  externalPlanId     String?
+  metadata           Json?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  plan               Plan            @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([provider, externalProductId])
+  @@index([provider, externalVariantId])
+  @@unique([provider, externalPlanId])
+}
+
+model Subscription {
+  id                    String             @id @default(cuid())
+  userId                String
+  planId                String
+  provider              BillingProvider    @default(SQUARESPACE)
+  providerSubscriptionId String?
+  providerOrderId       String?
+  providerCustomerId    String?
+  providerProductId     String?
+  providerPlanId        String?
+  providerOriginalTransactionId String?
+  providerPurchaseToken String?
+  providerEnvironment   String?
+  status                SubscriptionStatus @default(TRIALING)
+  startedAt             DateTime           @default(now())
+  trialEndsAt           DateTime?
+  currentPeriodStart    DateTime?
+  currentPeriodEnd      DateTime?
+  graceEndsAt           DateTime?
+  canceledAt            DateTime?
+  metadata              Json?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                  Plan               @relation(fields: [planId], references: [id], onDelete: Restrict)
+  entitlements          Entitlement[]
+  licenses              License[]
+
+  @@index([userId, status])
+  @@index([providerOrderId])
+  @@index([provider, providerOrderId])
+  @@unique([provider, providerSubscriptionId])
+}
+
+model Entitlement {
+  id               String       @id @default(cuid())
+  userId           String
+  productId        String
+  subscriptionId   String?
+  source           String
+  quantity         Int          @default(1)
+  isActive         Boolean      @default(true)
+  validFrom        DateTime     @default(now())
+  validUntil       DateTime?
+  metadata         Json?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product          Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
+  subscription     Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  licenses         License[]
+}
+
+model License {
+  id                  String         @id @default(cuid())
+  licenseKey          String         @unique
+  userId              String
+  productId           String
+  subscriptionId      String?
+  entitlementId       String?
+  status              LicenseStatus  @default(PENDING)
+  maxActivations      Int            @default(1)
+  graceEndsAt         DateTime?
+  lastValidatedAt     DateTime?
+  revokedAt           DateTime?
+  notes               String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product             Product        @relation(fields: [productId], references: [id], onDelete: Restrict)
+  subscription        Subscription?  @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  entitlement         Entitlement?   @relation(fields: [entitlementId], references: [id], onDelete: SetNull)
+  activations         LicenseActivation[]
+
+  @@index([userId, status])
+  @@index([subscriptionId])
+}
+
+model LicenseActivation {
+  id                String                 @id @default(cuid())
+  licenseId         String
+  deviceFingerprint String
+  machineId         String?
+  deviceName        String?
+  status            DeviceActivationStatus @default(ACTIVE)
+  firstActivatedAt  DateTime               @default(now())
+  releasedAt        DateTime?
+  blockedAt         DateTime?
+  lastValidatedAt   DateTime?
+  metadata          Json?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  license           License                @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+
+  @@unique([licenseId, deviceFingerprint])
+  @@index([deviceFingerprint, status])
+}
+
+model WebhookEvent {
+  id                String                  @id @default(cuid())
+  provider          BillingProvider
+  providerEventId   String
+  eventType         String
+  signature         String?
+  payload           Json
+  status            WebhookProcessingStatus @default(RECEIVED)
+  processedAt       DateTime?
+  errorMessage      String?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  @@unique([provider, providerEventId])
+}
+
+model EmailLog {
+  id          String      @id @default(cuid())
+  userId      String?
+  template    String
+  recipient   String
+  subject     String
+  status      EmailStatus @default(PENDING)
+  provider    String      @default("console")
+  providerId  String?
+  error       String?
+  metadata    Json?
+  sentAt      DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([recipient, template])
+}
+
+model PasswordSetupToken {
+  id          String   @id @default(cuid())
+  userId      String
+  tokenHash   String   @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
