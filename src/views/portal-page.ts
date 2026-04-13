@@ -155,7 +155,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         --panel-alt: #f7f5f1;
         --text: #181716;
         --muted: #66615a;
-        --accent: #b6b6b6;
+        --accent: #b9b9b9;
         --accent-dark: #aaaaaa;
         --danger: #8f5454;
         --success: #2d9d69;
@@ -189,8 +189,8 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
       .hero {
         padding: 38px;
         background:
-          linear-gradient(180deg, rgba(255,255,255,0.65), transparent),
-          linear-gradient(145deg, #d7d7d7, #aaaaaa);
+          linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.08)),
+          linear-gradient(145deg, #c5c5c5, #aaaaaa 62%, #9f9f9f);
       }
       .badge {
         display: inline-block;
@@ -268,7 +268,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         color: var(--button-text);
         font-size: 14px;
         font-weight: 700;
-        background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+        background: linear-gradient(180deg, #c2c2c2, #aaaaaa);
         border: 1px solid rgba(24, 23, 22, 0.08);
       }
       .button.ghost {
