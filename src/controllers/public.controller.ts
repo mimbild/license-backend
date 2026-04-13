@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 
 import { completePasswordSetup, getPasswordSetupTokenStatus } from "../services/auth.service";
+import { renderHomePage } from "../views/home-page";
 import { renderSetupPasswordPage } from "../views/setup-password-page";
 
 const tokenQuerySchema = z.object({
@@ -14,6 +15,14 @@ const setupPasswordFormSchema = z.object({
   confirmPassword: z.string().min(8),
   name: z.string().trim().optional().default(""),
 });
+
+export async function homePageController(req: Request, res: Response) {
+  res.status(200).type("html").send(
+    renderHomePage({
+      appBaseUrl: req.protocol + "://" + req.get("host"),
+    }),
+  );
+}
 
 export async function setupPasswordFormController(req: Request, res: Response) {
   const parsedQuery = tokenQuerySchema.safeParse(req.query);
