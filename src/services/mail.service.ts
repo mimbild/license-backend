@@ -142,7 +142,7 @@ function renderPasswordSetupTemplate(input: {
                 <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 22px;">
                   <tr>
                     <td>
-                      <a href="${escapeHtml(input.setupUrl)}" style="display:inline-block;padding:15px 22px;border-radius:14px;background:linear-gradient(180deg,#c2c2c2,#aaaaaa);border:1px solid rgba(24,23,22,0.08);color:#181716;text-decoration:none;font-weight:700;font-size:15px;">
+                      <a href="${escapeHtml(input.setupUrl)}" style="display:inline-block;padding:15px 22px;border-radius:14px;background:linear-gradient(180deg,#c2c2c2,#aaaaaa);border:1px solid rgba(24,23,22,0.08);color:#181716;text-decoration:none;font-weight:400;font-size:15px;">
                         Set password
                       </a>
                     </td>
