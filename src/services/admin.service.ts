@@ -3,6 +3,7 @@ import { ApiError } from "../utils/api-error";
 import { toSafeSubscription, toSafeUser } from "../utils/serializers";
 import { deriveGraceEndDate } from "./access.service";
 import { sendTemplatedEmail } from "./mail.service";
+import { normalizeDeviceFingerprint } from "../utils/device";
 
 export async function markSubscriptionPastDue(subscriptionId: string) {
   const subscription = await prisma.subscription.update({
@@ -75,6 +76,123 @@ export async function listAdminUsers(input: {
   });
 
   return users.map(toSafeUser);
+}
+
+export async function getAdminDashboardUserByEmail(email: string) {
+  const user = await prisma.user.findFirst({
+    where: {
+      email: {
+        equals: email,
+        mode: "insensitive",
+      },
+    },
+    include: {
+      subscriptions: {
+        include: {
+          plan: {
+            include: {
+              product: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      licenses: {
+        include: {
+          product: true,
+          subscription: true,
+          activations: {
+            orderBy: {
+              createdAt: "desc",
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  return {
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      createdAt: user.createdAt,
+    },
+    subscriptions: user.subscriptions.map((subscription) => ({
+      id: subscription.id,
+      provider: subscription.provider,
+      status: subscription.status,
+      providerOrderId: subscription.providerOrderId,
+      createdAt: subscription.createdAt,
+      planName: subscription.plan.name,
+      productName: subscription.plan.product.name,
+    })),
+    licenses: user.licenses.map((license) => ({
+      id: license.id,
+      licenseKey: license.licenseKey,
+      status: license.status,
+      productName: license.product.name,
+      subscriptionStatus: license.subscription?.status ?? null,
+      activations: license.activations,
+    })),
+  };
+}
+
+export async function releaseDeviceByAdmin(input: {
+  licenseKey: string;
+  deviceFingerprint: string;
+}) {
+  const fingerprint = normalizeDeviceFingerprint(input.deviceFingerprint);
+
+  if (!fingerprint) {
+    throw new ApiError(400, "DEVICE_REQUIRED", "deviceFingerprint is required");
+  }
+
+  const license = await prisma.license.findUnique({
+    where: {
+      licenseKey: input.licenseKey,
+    },
+    include: {
+      activations: true,
+    },
+  });
+
+  if (!license) {
+    throw new ApiError(404, "LICENSE_NOT_FOUND", "License not found");
+  }
+
+  const activation = license.activations.find(
+    (item) => item.deviceFingerprint === fingerprint && item.status === "ACTIVE",
+  );
+
+  if (!activation) {
+    throw new ApiError(404, "ACTIVATION_NOT_FOUND", "Device activation not found");
+  }
+
+  await prisma.licenseActivation.update({
+    where: {
+      id: activation.id,
+    },
+    data: {
+      status: "RELEASED",
+      releasedAt: new Date(),
+    },
+  });
+
+  return {
+    ok: true,
+    releasedActivationId: activation.id,
+  };
 }
 
 export async function listAdminSubscriptions(input: {

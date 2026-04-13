@@ -7,6 +7,7 @@ import { logger } from "./config/logger";
 import { apiRouter } from "./routes";
 import { errorHandler } from "./middleware/error-handler";
 import { notFoundHandler } from "./middleware/not-found";
+import { adminPortalRouter } from "./routes/admin-portal.routes";
 import { portalRouter } from "./routes/portal.routes";
 import { publicRouter } from "./routes/public.routes";
 
@@ -46,6 +47,7 @@ export function createApp() {
     });
   });
 
+  app.use(adminPortalRouter);
   app.use(portalRouter);
   app.use(publicRouter);
   app.use("/api", apiRouter);
