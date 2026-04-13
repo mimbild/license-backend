@@ -59,6 +59,10 @@ license-backend/
 └── README.md
 ```
 
+## Integration Guide
+
+- ScanCTRL desktop-integration: [`docs/scanctrl-integration.md`](./docs/scanctrl-integration.md)
+
 ## API-endpoints i MVP
 
 - `POST /api/webhooks/squarespace`
