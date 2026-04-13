@@ -41,19 +41,26 @@ export function renderSetupPasswordPage(input: SetupPasswordPageInput) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(title)} | ScanCTRL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
-        --bg: #121212;
-        --panel: rgba(28, 28, 31, 0.9);
-        --panel-border: rgba(255, 255, 255, 0.08);
-        --text: #f5f3ef;
-        --muted: #b8b2aa;
-        --accent: #cf3f2f;
-        --accent-dark: #9f2f24;
+        --bg: #f3f4f4;
+        --panel: rgba(255, 255, 255, 0.92);
+        --panel-border: rgba(18, 18, 18, 0.09);
+        --panel-alt: rgba(255, 255, 255, 0.8);
+        --text: #181716;
+        --muted: #66615a;
+        --accent: #b9b9b9;
+        --accent-dark: #aaaaaa;
         --success: #2d9d69;
-        --danger: #d25b5b;
-        --input: rgba(255, 255, 255, 0.06);
-        --shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+        --danger: #a45353;
+        --input: rgba(255, 255, 255, 0.84);
+        --shadow: 0 30px 80px rgba(84, 78, 67, 0.18);
       }
 
       * {
@@ -63,94 +70,74 @@ export function renderSetupPasswordPage(input: SetupPasswordPageInput) {
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-family: "Poppins", "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
         color: var(--text);
         background:
-          radial-gradient(circle at top left, rgba(207, 63, 47, 0.22), transparent 32%),
-          radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.08), transparent 28%),
-          linear-gradient(160deg, #0f0f10 0%, #171719 48%, #101113 100%);
-        display: grid;
-        place-items: center;
+          radial-gradient(circle at top left, rgba(176, 173, 167, 0.38), transparent 30%),
+          radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.85), transparent 26%),
+          linear-gradient(160deg, #f7f7f7, #f3f4f4 52%, #eceeee);
         padding: 32px 20px;
       }
 
       .shell {
-        width: min(100%, 980px);
+        width: min(100%, 1080px);
+        margin: 0 auto;
         display: grid;
-        grid-template-columns: 1.1fr 1fr;
+        grid-template-columns: 0.92fr 1.28fr;
         background: var(--panel);
         border: 1px solid var(--panel-border);
-        border-radius: 28px;
+        border-radius: 30px;
         overflow: hidden;
         box-shadow: var(--shadow);
-        backdrop-filter: blur(18px);
       }
 
       .hero {
-        padding: 42px;
+        padding: 38px;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
-          linear-gradient(145deg, #1a1a1d 0%, #121214 100%);
-        position: relative;
+          linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.08)),
+          linear-gradient(145deg, #c5c5c5, #aaaaaa 62%, #9f9f9f);
       }
 
       .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+        display: inline-block;
         padding: 8px 14px;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255,255,255,0.68);
         color: var(--muted);
         font-size: 12px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        letter-spacing: 0.03em;
       }
 
       .hero h1 {
+        font-family: "Manrope", "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
         margin: 22px 0 14px;
-        font-size: clamp(38px, 5vw, 60px);
+        font-size: clamp(40px, 5vw, 64px);
         line-height: 0.95;
-        letter-spacing: -0.04em;
+        letter-spacing: -0.045em;
       }
 
       .hero p {
-        max-width: 36ch;
+        max-width: 28ch;
         color: var(--muted);
         font-size: 17px;
-        line-height: 1.6;
+        line-height: 1.65;
       }
 
-      .shape {
-        margin-top: 48px;
-        width: 180px;
-        aspect-ratio: 1;
-        border-radius: 28px;
-        background:
-          linear-gradient(160deg, rgba(207, 63, 47, 1), rgba(90, 24, 16, 0.92));
-        display: grid;
-        place-items: center;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
-      }
-
-      .shape::after {
-        content: "";
-        width: 88px;
-        height: 88px;
-        border-radius: 24px;
-        border: 10px solid rgba(255, 255, 255, 0.85);
-        border-top-left-radius: 40px;
-        transform: rotate(8deg);
+      .mark {
+        width: 172px;
+        margin-top: 36px;
+        display: block;
       }
 
       .panel {
-        padding: 42px 36px;
-        background: rgba(8, 8, 10, 0.44);
+        padding: 34px;
+        background: var(--panel-alt);
       }
 
       .panel h2 {
         margin: 0 0 8px;
-        font-size: 28px;
+        font-family: "Manrope", "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 30px;
         letter-spacing: -0.03em;
       }
 
@@ -174,7 +161,7 @@ export function renderSetupPasswordPage(input: SetupPasswordPageInput) {
 
       input {
         width: 100%;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(18, 18, 18, 0.09);
         border-radius: 14px;
         background: var(--input);
         color: var(--text);
@@ -184,23 +171,23 @@ export function renderSetupPasswordPage(input: SetupPasswordPageInput) {
       }
 
       input:focus {
-        border-color: rgba(207, 63, 47, 0.7);
-        box-shadow: 0 0 0 4px rgba(207, 63, 47, 0.16);
+        border-color: rgba(170, 170, 170, 0.8);
+        box-shadow: 0 0 0 4px rgba(170, 170, 170, 0.18);
       }
 
       .readonly {
-        opacity: 0.72;
+        opacity: 0.74;
       }
 
       .button {
         appearance: none;
-        border: 0;
+        border: 1px solid rgba(18, 18, 18, 0.08);
         border-radius: 14px;
         background: linear-gradient(180deg, var(--accent), var(--accent-dark));
-        color: white;
+        color: #22201d;
         padding: 16px 18px;
         font-size: 15px;
-        font-weight: 700;
+        font-weight: 500;
         cursor: pointer;
       }
 
@@ -220,23 +207,23 @@ export function renderSetupPasswordPage(input: SetupPasswordPageInput) {
         padding: 14px 15px;
         border-radius: 14px;
         line-height: 1.5;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(18, 18, 18, 0.08);
       }
 
       .notice.error {
-        background: rgba(210, 91, 91, 0.12);
-        border-color: rgba(210, 91, 91, 0.35);
-        color: #ffd2d2;
+        background: rgba(164, 83, 83, 0.12);
+        border-color: rgba(164, 83, 83, 0.24);
+        color: #7b3232;
       }
 
       .notice.success {
         background: rgba(45, 157, 105, 0.14);
         border-color: rgba(45, 157, 105, 0.35);
-        color: #d4ffe9;
+        color: #1d6a46;
       }
 
       a {
-        color: #ff9d8c;
+        color: #5f5a53;
       }
 
       @media (max-width: 820px) {
@@ -249,7 +236,7 @@ export function renderSetupPasswordPage(input: SetupPasswordPageInput) {
           padding: 28px;
         }
 
-        .shape {
+        .mark {
           width: 132px;
           margin-top: 28px;
         }
@@ -259,13 +246,13 @@ export function renderSetupPasswordPage(input: SetupPasswordPageInput) {
   <body>
     <main class="shell">
       <section class="hero">
-        <div class="badge">ScanCTRL account setup</div>
+        <div class="badge">StudioAutomation Account</div>
         <h1>${escapeHtml(title)}</h1>
         <p>
-          Finish setting up your account so you can sign in, manage your license, and activate
-          your desktop software with your backend-backed subscription.
+          Finish setting up your account so you can sign in, view your licenses, and manage your
+          desktop access from the same place.
         </p>
-        <div class="shape" aria-hidden="true"></div>
+        <img class="mark" src="/brand/ScanCTRL.png" alt="StudioAutomation logo" />
       </section>
       <section class="panel">
         ${content}
