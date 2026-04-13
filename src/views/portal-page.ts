@@ -224,8 +224,6 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         width: 172px;
         margin-top: 36px;
         display: block;
-        border-radius: 28px;
-        box-shadow: 0 22px 36px rgba(138, 130, 116, 0.16);
       }
       .panel {
         padding: 34px;
