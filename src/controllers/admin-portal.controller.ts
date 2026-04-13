@@ -4,7 +4,9 @@ import { z } from "zod";
 import { env } from "../config/env";
 import { getAdminCookieName } from "../middleware/admin-portal-auth";
 import {
+  getAdminDashboardUserById,
   getAdminDashboardUserByEmail,
+  listAdminDashboardUsers,
   releaseDeviceByAdmin,
 } from "../services/admin.service";
 import { loginUser, issuePasswordSetupForUser } from "../services/auth.service";
@@ -97,15 +99,27 @@ export async function adminLogoutController(_req: Request, res: Response) {
 
 export async function adminDashboardController(req: Request, res: Response) {
   const email = typeof req.query.email === "string" ? req.query.email.trim() : "";
+  const selectedUserId = typeof req.query.userId === "string" ? req.query.userId.trim() : "";
   const notice = typeof req.query.notice === "string" ? req.query.notice : undefined;
   const syncMessage = typeof req.query.sync === "string" ? req.query.sync : undefined;
 
-  const result = email ? await getAdminDashboardUserByEmail(email) : undefined;
+  const users = await listAdminDashboardUsers({
+    limit: 50,
+    email: email || undefined,
+  });
+
+  const result = selectedUserId
+    ? await getAdminDashboardUserById(selectedUserId)
+    : email && users.length === 1
+      ? await getAdminDashboardUserByEmail(users[0].email)
+      : undefined;
 
   res.status(200).type("html").send(
     renderAdminDashboardPage({
       adminEmail: req.auth!.email,
       searchEmail: email || undefined,
+      users,
+      selectedUserId: result?.user.id,
       result,
       notice,
       syncMessage,

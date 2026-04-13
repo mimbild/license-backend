@@ -58,6 +58,18 @@ export function renderAdminLoginPage(input: {
 export function renderAdminDashboardPage(input: {
   adminEmail: string;
   searchEmail?: string;
+  users: Array<{
+    id: string;
+    email: string;
+    role: UserRole;
+    name: string | null;
+    createdAt: Date;
+    _count: {
+      subscriptions: number;
+      licenses: number;
+    };
+  }>;
+  selectedUserId?: string;
   result?: AdminDashboardData | null;
   errorMessage?: string;
   notice?: string;
@@ -65,10 +77,29 @@ export function renderAdminDashboardPage(input: {
 }) {
   const resultMarkup =
     input.result === undefined
-      ? `<div class="empty">Search for a customer by email to view subscriptions, licenses, and active devices.</div>`
+      ? `<div class="empty">Choose a customer from the list to inspect subscriptions, licenses, and active devices.</div>`
       : input.result === null
         ? `<div class="empty">No customer matched that email address.</div>`
         : renderUserResult(input.result);
+
+  const userListMarkup = input.users.length
+    ? input.users
+        .map(
+          (user, index) => `
+            <a class="table-row${input.selectedUserId === user.id ? " active" : ""}" href="/admin/dashboard?email=${encodeURIComponent(input.searchEmail ?? "")}&userId=${encodeURIComponent(user.id)}">
+              <span>${index + 1}</span>
+              <span>
+                <strong>${escapeHtml(user.name ?? "Unnamed user")}</strong>
+                <small>${escapeHtml(user.email)}</small>
+              </span>
+              <span>${escapeHtml(user.role)}</span>
+              <span>${user._count.subscriptions}</span>
+              <span>${user._count.licenses}</span>
+            </a>
+          `,
+        )
+        .join("")
+    : `<div class="empty compact">No users matched your search.</div>`;
 
   return renderAdminShell({
     title: "Admin dashboard",
@@ -86,35 +117,39 @@ export function renderAdminDashboardPage(input: {
       ${input.notice ? `<div class="notice success">${escapeHtml(input.notice)}</div>` : ""}
       ${input.errorMessage ? `<div class="notice error">${escapeHtml(input.errorMessage)}</div>` : ""}
       ${input.syncMessage ? `<div class="notice success">${escapeHtml(input.syncMessage)}</div>` : ""}
-      <div class="admin-grid">
-        <section class="section-card">
-          <h3>Customer search</h3>
-          <form method="get" action="/admin/dashboard">
-            <label>
-              Customer email
-              <input
-                type="email"
-                name="email"
-                value="${escapeHtml(input.searchEmail ?? "")}"
-                placeholder="customer@example.com"
-                required
-              />
-            </label>
-            <button class="button" type="submit">Search</button>
-          </form>
-        </section>
-        <section class="section-card">
-          <h3>Squarespace sync</h3>
-          <p class="meta">Run an on-demand sync if you need to pull in a recent order immediately.</p>
-          <form method="post" action="/admin/sync/squarespace">
-            <label>
-              Order fetch limit
-              <input type="number" min="1" max="100" name="limit" value="20" required />
-            </label>
-            <button class="button" type="submit">Run sync</button>
-          </form>
-        </section>
-      </div>
+      <section class="toolbar">
+        <form class="toolbar-form search-form" method="get" action="/admin/dashboard">
+          <label class="field field-wide">
+            <span>Customer email</span>
+            <input
+              type="text"
+              name="email"
+              value="${escapeHtml(input.searchEmail ?? "")}"
+              placeholder="Search by email"
+            />
+          </label>
+          <button class="button" type="submit">Search</button>
+        </form>
+        <form class="toolbar-form sync-form" method="post" action="/admin/sync/squarespace">
+          <label class="field">
+            <span>Sync limit</span>
+            <input type="number" min="1" max="100" name="limit" value="20" required />
+          </label>
+          <button class="button" type="submit">Run sync</button>
+        </form>
+      </section>
+      <section class="table-card">
+        <div class="table-header">
+          <span>#</span>
+          <span>User</span>
+          <span>Role</span>
+          <span>Subscriptions</span>
+          <span>Licenses</span>
+        </div>
+        <div class="table-body">
+          ${userListMarkup}
+        </div>
+      </section>
       <section class="results">
         ${resultMarkup}
       </section>
@@ -370,6 +405,82 @@ function renderAdminShell(input: { title: string; lead: string; panel: string })
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 18px;
       }
+      .toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.8fr);
+        gap: 16px;
+      }
+      .toolbar-form {
+        display: grid;
+        gap: 12px;
+        padding: 18px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.84);
+        border: 1px solid var(--border);
+      }
+      .search-form {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+      }
+      .sync-form {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+      }
+      .field { display: grid; gap: 8px; }
+      .field span {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .field-wide { min-width: 0; }
+      .table-card {
+        margin-top: 18px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        overflow: hidden;
+        background: rgba(255,255,255,0.84);
+      }
+      .table-header, .table-row {
+        display: grid;
+        grid-template-columns: 56px minmax(0, 2.2fr) minmax(120px, 0.8fr) minmax(120px, 0.9fr) minmax(120px, 0.9fr);
+        gap: 16px;
+        align-items: center;
+      }
+      .table-header {
+        padding: 16px 20px;
+        background: linear-gradient(180deg, #d5d5d5, #bdbdbd);
+        color: #4f4a44;
+        font-size: 13px;
+        letter-spacing: 0.02em;
+      }
+      .table-body {
+        display: grid;
+      }
+      .table-row {
+        padding: 18px 20px;
+        color: var(--text);
+        text-decoration: none;
+        border-top: 1px solid rgba(18,18,18,0.06);
+        background: rgba(255,255,255,0.68);
+      }
+      .table-row:nth-child(even) {
+        background: rgba(243,244,244,0.92);
+      }
+      .table-row:hover {
+        background: rgba(227,228,228,0.96);
+      }
+      .table-row.active {
+        background: rgba(220,221,221,0.98);
+      }
+      .table-row strong {
+        display: block;
+        font-weight: 600;
+      }
+      .table-row small {
+        display: block;
+        margin-top: 2px;
+        font-size: 13px;
+        color: var(--muted);
+      }
       .admin-grid.stack {
         margin-top: 18px;
       }
@@ -425,6 +536,13 @@ function renderAdminShell(input: { title: string; lead: string; panel: string })
       @media (max-width: 920px) {
         .shell { grid-template-columns: 1fr; }
         .admin-grid { grid-template-columns: 1fr; }
+        .toolbar { grid-template-columns: 1fr; }
+        .search-form, .sync-form { grid-template-columns: 1fr; }
+        .table-header, .table-row {
+          grid-template-columns: 48px minmax(0, 1.6fr) minmax(90px, 0.8fr) minmax(90px, 0.8fr) minmax(90px, 0.8fr);
+          gap: 10px;
+          font-size: 13px;
+        }
         .hero, .panel { padding: 28px; }
         .mark { width: 132px; margin-top: 28px; }
         .topbar, .user-summary, .result-header, .device-row {

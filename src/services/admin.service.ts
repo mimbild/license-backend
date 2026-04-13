@@ -78,6 +78,39 @@ export async function listAdminUsers(input: {
   return users.map(toSafeUser);
 }
 
+export async function listAdminDashboardUsers(input: {
+  limit: number;
+  email?: string;
+}) {
+  return prisma.user.findMany({
+    where: input.email
+      ? {
+          email: {
+            contains: input.email,
+            mode: "insensitive",
+          },
+        }
+      : undefined,
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      name: true,
+      createdAt: true,
+      _count: {
+        select: {
+          subscriptions: true,
+          licenses: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: input.limit,
+  });
+}
+
 export async function getAdminDashboardUserByEmail(email: string) {
   const user = await prisma.user.findFirst({
     where: {
@@ -85,6 +118,73 @@ export async function getAdminDashboardUserByEmail(email: string) {
         equals: email,
         mode: "insensitive",
       },
+    },
+    include: {
+      subscriptions: {
+        include: {
+          plan: {
+            include: {
+              product: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      licenses: {
+        include: {
+          product: true,
+          subscription: true,
+          activations: {
+            orderBy: {
+              createdAt: "desc",
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  return {
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      createdAt: user.createdAt,
+    },
+    subscriptions: user.subscriptions.map((subscription) => ({
+      id: subscription.id,
+      provider: subscription.provider,
+      status: subscription.status,
+      providerOrderId: subscription.providerOrderId,
+      createdAt: subscription.createdAt,
+      planName: subscription.plan.name,
+      productName: subscription.plan.product.name,
+    })),
+    licenses: user.licenses.map((license) => ({
+      id: license.id,
+      licenseKey: license.licenseKey,
+      status: license.status,
+      productName: license.product.name,
+      subscriptionStatus: license.subscription?.status ?? null,
+      activations: license.activations,
+    })),
+  };
+}
+
+export async function getAdminDashboardUserById(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
     },
     include: {
       subscriptions: {
