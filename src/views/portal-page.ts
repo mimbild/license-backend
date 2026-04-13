@@ -150,7 +150,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
     <title>${escapeHtml(input.title)} | ScanCTRL</title>
     <style>
       :root {
-        --bg: #f2f0eb;
+        --bg: #f3f4f4;
         --panel: rgba(255, 255, 255, 0.92);
         --panel-alt: #f7f5f1;
         --text: #181716;
@@ -172,7 +172,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         background:
           radial-gradient(circle at top left, rgba(176, 173, 167, 0.38), transparent 30%),
           radial-gradient(circle at 80% 20%, rgba(255,255,255,0.85), transparent 26%),
-          linear-gradient(160deg, #fbfaf7, #f1eee8 52%, #ebe7de);
+          linear-gradient(160deg, #f7f7f7, #f3f4f4 52%, #eceeee);
         padding: 32px 20px;
       }
       .shell {
