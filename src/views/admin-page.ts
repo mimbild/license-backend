@@ -86,14 +86,13 @@ export function renderAdminDashboardPage(input: {
     ? input.users
         .map((user, index) => {
           const currentSubscription = user.subscriptions[0];
+          const isActive = input.selectedUserId === user.id && input.result?.user.id === user.id;
           const href = buildDashboardHref({
             email: input.searchEmail,
             provider: input.provider,
             status: input.status,
-            userId: user.id,
+            userId: isActive ? undefined : user.id,
           });
-
-          const isActive = input.selectedUserId === user.id && input.result?.user.id === user.id;
 
           return `
             <a class="table-row${isActive ? " active" : ""}" href="${href}">
