@@ -148,6 +148,12 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(input.title)} | ScanCTRL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
         --bg: #f3f4f4;
@@ -167,7 +173,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-family: "Poppins", "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
         color: var(--text);
         background:
           radial-gradient(circle at top left, rgba(176, 173, 167, 0.38), transparent 30%),
@@ -202,6 +208,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         font-size: 12px;
       }
       .hero h1 {
+        font-family: "Manrope", "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
         font-size: clamp(40px, 5vw, 64px);
         line-height: 0.95;
         letter-spacing: -0.045em;
@@ -226,6 +233,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
       }
       .panel h2 {
         margin: 0;
+        font-family: "Manrope", "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
         font-size: 30px;
         letter-spacing: -0.03em;
       }
@@ -318,6 +326,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         align-items: start;
       }
       .product-name {
+        font-family: "Manrope", "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
         font-size: 22px;
         letter-spacing: -0.03em;
       }
@@ -364,6 +373,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
       }
       .device-section h3 {
         margin: 0 0 14px;
+        font-family: "Manrope", "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
         font-size: 17px;
       }
       .device-row, .history-row {
