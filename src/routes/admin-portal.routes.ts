@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   adminDashboardController,
+  adminDeleteUserController,
   adminLoginPageController,
   adminLoginSubmitController,
   adminLogoutController,
@@ -53,6 +54,11 @@ adminPortalRouter.post(
   "/admin/users/:userId/send-password-setup",
   requireAdminPortalAuth,
   asyncHandler(adminSendPasswordSetupController),
+);
+adminPortalRouter.post(
+  "/admin/users/:userId/delete",
+  requireAdminPortalAuth,
+  asyncHandler(adminDeleteUserController),
 );
 adminPortalRouter.post(
   "/admin/licenses/:licenseKey/release-device",

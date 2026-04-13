@@ -4,6 +4,7 @@ import { z } from "zod";
 import { env } from "../config/env";
 import { getAdminCookieName } from "../middleware/admin-portal-auth";
 import {
+  deleteUserByAdmin,
   getAdminDashboardUserById,
   getAdminDashboardUserByEmail,
   listAdminDashboardUsers,
@@ -144,9 +145,30 @@ export async function adminDashboardController(req: Request, res: Response) {
   );
 }
 
+function buildAdminDashboardRedirect(
+  req: Request,
+  messageType: "notice" | "error",
+  message: string,
+) {
+  const fallback = "/admin/dashboard";
+  const referer = req.get("referer");
+
+  if (!referer) {
+    return `${fallback}?${messageType}=${encodeURIComponent(message)}`;
+  }
+
+  try {
+    const url = new URL(referer);
+    url.searchParams.set(messageType, message);
+    return `${url.pathname}${url.search}`;
+  } catch {
+    return `${fallback}?${messageType}=${encodeURIComponent(message)}`;
+  }
+}
+
 export async function adminSendPasswordSetupController(req: Request, res: Response) {
   await issuePasswordSetupForUser(String(req.params.userId));
-  res.redirect("/admin/dashboard?notice=Password+setup+email+sent");
+  res.redirect(buildAdminDashboardRedirect(req, "notice", "Password setup email sent"));
 }
 
 export async function adminReleaseDeviceController(req: Request, res: Response) {
@@ -162,7 +184,21 @@ export async function adminReleaseDeviceController(req: Request, res: Response) 
     deviceFingerprint: parsed.data.deviceFingerprint,
   });
 
-  res.redirect("/admin/dashboard?notice=Device+released");
+  res.redirect(buildAdminDashboardRedirect(req, "notice", "Device released"));
+}
+
+export async function adminDeleteUserController(req: Request, res: Response) {
+  try {
+    const deleted = await deleteUserByAdmin(String(req.params.userId));
+    res.redirect(buildAdminDashboardRedirect(req, "notice", `${deleted.email} deleted`));
+  } catch (error) {
+    if (error instanceof Error) {
+      res.redirect(buildAdminDashboardRedirect(req, "error", error.message));
+      return;
+    }
+
+    res.redirect(buildAdminDashboardRedirect(req, "error", "Could not delete user"));
+  }
 }
 
 export async function adminSyncSquarespaceController(req: Request, res: Response) {

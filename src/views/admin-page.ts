@@ -201,6 +201,11 @@ function renderExpandedUser(
   result: AdminDashboardData,
   filters: { email?: string; provider?: string; status?: string },
 ) {
+  const canDeleteUser =
+    result.user.role === "CUSTOMER" &&
+    result.subscriptions.length === 0 &&
+    result.licenses.length === 0;
+
   const subscriptions = result.subscriptions.length
     ? result.subscriptions
         .map(
@@ -277,6 +282,13 @@ function renderExpandedUser(
         <form method="post" action="/admin/users/${encodeURIComponent(result.user.id)}/send-password-setup">
           <button class="button" type="submit">Send password setup email</button>
         </form>
+        ${
+          canDeleteUser
+            ? `<form method="post" action="/admin/users/${encodeURIComponent(result.user.id)}/delete" onsubmit="return confirm('Delete this empty customer account?');">
+                <button class="button danger" type="submit">Delete user</button>
+              </form>`
+            : `<div class="inline-hint">Delete is available only for empty customer accounts.</div>`
+        }
         <a class="button ghost link-button" href="${buildDashboardHref(filters)}">Collapse</a>
       </div>
     </div>
@@ -675,6 +687,16 @@ function renderAdminDashboardShell(input: { title: string; adminEmail: string; p
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
+      }
+      .inline-hint {
+        display: inline-flex;
+        align-items: center;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.72);
+        border: 1px solid rgba(18,18,18,0.08);
+        color: var(--muted);
+        font-size: 13px;
       }
       .admin-grid {
         display: grid;

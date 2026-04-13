@@ -323,6 +323,53 @@ export async function releaseDeviceByAdmin(input: {
   };
 }
 
+export async function deleteUserByAdmin(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    include: {
+      subscriptions: {
+        select: {
+          id: true,
+        },
+      },
+      licenses: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "USER_NOT_FOUND", "User not found");
+  }
+
+  if (user.role === "ADMIN") {
+    throw new ApiError(400, "ADMIN_DELETE_FORBIDDEN", "Admin users cannot be deleted here");
+  }
+
+  if (user.subscriptions.length > 0 || user.licenses.length > 0) {
+    throw new ApiError(
+      400,
+      "USER_DELETE_FORBIDDEN",
+      "Only empty customer accounts without subscriptions or licenses can be deleted",
+    );
+  }
+
+  return prisma.user.delete({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+    },
+  });
+}
+
 export async function listAdminSubscriptions(input: {
   limit: number;
   provider?: "SQUARESPACE" | "APPLE_APP_STORE" | "GOOGLE_PLAY" | "MANUAL" | "SEED";
