@@ -26,6 +26,9 @@ const adminReleaseSchema = z.object({
   deviceFingerprint: z.string().min(1),
 });
 
+const providerValues = ["SQUARESPACE", "APPLE_APP_STORE", "GOOGLE_PLAY", "MANUAL", "SEED"] as const;
+const statusValues = ["TRIALING", "ACTIVE", "PAST_DUE", "CANCELED", "EXPIRED"] as const;
+
 export async function adminLoginPageController(req: Request, res: Response) {
   if (req.auth?.role === "ADMIN") {
     res.redirect("/admin/dashboard");
@@ -100,12 +103,24 @@ export async function adminLogoutController(_req: Request, res: Response) {
 export async function adminDashboardController(req: Request, res: Response) {
   const email = typeof req.query.email === "string" ? req.query.email.trim() : "";
   const selectedUserId = typeof req.query.userId === "string" ? req.query.userId.trim() : "";
+  const provider =
+    typeof req.query.provider === "string" &&
+    providerValues.includes(req.query.provider as (typeof providerValues)[number])
+      ? (req.query.provider as (typeof providerValues)[number])
+      : undefined;
+  const status =
+    typeof req.query.status === "string" &&
+    statusValues.includes(req.query.status as (typeof statusValues)[number])
+      ? (req.query.status as (typeof statusValues)[number])
+      : undefined;
   const notice = typeof req.query.notice === "string" ? req.query.notice : undefined;
   const syncMessage = typeof req.query.sync === "string" ? req.query.sync : undefined;
 
   const users = await listAdminDashboardUsers({
     limit: 50,
     email: email || undefined,
+    provider,
+    status,
   });
 
   const result = selectedUserId
@@ -118,6 +133,8 @@ export async function adminDashboardController(req: Request, res: Response) {
     renderAdminDashboardPage({
       adminEmail: req.auth!.email,
       searchEmail: email || undefined,
+      provider,
+      status,
       users,
       selectedUserId: result?.user.id,
       result,

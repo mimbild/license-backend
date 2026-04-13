@@ -81,22 +81,50 @@ export async function listAdminUsers(input: {
 export async function listAdminDashboardUsers(input: {
   limit: number;
   email?: string;
+  provider?: "SQUARESPACE" | "APPLE_APP_STORE" | "GOOGLE_PLAY" | "MANUAL" | "SEED";
+  status?: "TRIALING" | "ACTIVE" | "PAST_DUE" | "CANCELED" | "EXPIRED";
 }) {
   return prisma.user.findMany({
-    where: input.email
-      ? {
-          email: {
-            contains: input.email,
-            mode: "insensitive",
-          },
-        }
-      : undefined,
+    where: {
+      ...(input.email
+        ? {
+            email: {
+              contains: input.email,
+              mode: "insensitive",
+            },
+          }
+        : {}),
+      ...((input.provider || input.status)
+        ? {
+            subscriptions: {
+              some: {
+                provider: input.provider,
+                status: input.status,
+              },
+            },
+          }
+        : {}),
+    },
     select: {
       id: true,
       email: true,
       role: true,
       name: true,
       createdAt: true,
+      subscriptions: {
+        where: {
+          provider: input.provider,
+          status: input.status,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 1,
+        select: {
+          provider: true,
+          status: true,
+        },
+      },
       _count: {
         select: {
           subscriptions: true,
