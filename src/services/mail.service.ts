@@ -80,6 +80,13 @@ function renderTemplate(
     });
   }
 
+  if (template === "welcome") {
+    return renderWelcomeTemplate({
+      title,
+      email: String(variables?.email ?? ""),
+    });
+  }
+
   const lines = Object.entries(variables ?? {})
     .map(([key, value]) => `<li><strong>${key}</strong>: ${String(value ?? "")}</li>`)
     .join("");
@@ -121,6 +128,20 @@ function renderPlainTextTemplate(
       `License key: ${licenseKey}`,
       "",
       "If this was not you, contact support and release the device from your account portal.",
+    ].join("\n");
+  }
+
+  if (template === "welcome") {
+    const email = String(variables?.email ?? "");
+
+    return [
+      title,
+      "",
+      `Welcome to StudioAutomation, ${email}.`,
+      "",
+      "Your account is now ready. You can sign in to your account portal to view your licenses and manage device activations.",
+      "",
+      `${env.APP_BASE_URL}/portal/login`,
     ].join("\n");
   }
 
@@ -241,6 +262,62 @@ function renderActivationConfirmationTemplate(input: {
                 </table>
                 <p style="margin:0;font-size:14px;line-height:1.7;color:#66615a;">
                   If this was not you, sign in to your account portal and release the device, or contact support.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+function renderWelcomeTemplate(input: { title: string; email: string }) {
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${escapeHtml(input.title)}</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f3f4f4;font-family:'Poppins','Avenir Next','Helvetica Neue',Arial,sans-serif;color:#181716;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f4;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:28px;overflow:hidden;border:1px solid rgba(18,18,18,0.08);box-shadow:0 24px 60px rgba(84,78,67,0.14);">
+            <tr>
+              <td style="padding:40px 40px 28px;background:linear-gradient(145deg,#d7d7d7,#aaaaaa);">
+                <div style="display:inline-block;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,0.72);color:#66615a;font-size:12px;letter-spacing:0.03em;">
+                  StudioAutomation Account
+                </div>
+                <h1 style="margin:22px 0 14px;font-family:'Manrope','Avenir Next','Helvetica Neue',Arial,sans-serif;font-size:42px;line-height:0.98;letter-spacing:-0.04em;color:#181716;">
+                  Welcome to your account
+                </h1>
+                <p style="margin:0;max-width:30ch;font-size:17px;line-height:1.65;color:#544f49;">
+                  Your account is ready to use for license management and device activation.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:34px 40px 40px;">
+                <p style="margin:0 0 18px;font-size:16px;line-height:1.7;color:#3d3935;">
+                  Welcome, <strong>${escapeHtml(input.email)}</strong>.
+                </p>
+                <p style="margin:0 0 22px;font-size:15px;line-height:1.75;color:#66615a;">
+                  You can sign in to your account portal to view your licenses, manage device activations, and handle account-related setup.
+                </p>
+                <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 22px;">
+                  <tr>
+                    <td>
+                      <a href="${escapeHtml(`${env.APP_BASE_URL}/portal/login`)}" style="display:inline-block;padding:15px 22px;border-radius:14px;background:linear-gradient(180deg,#c2c2c2,#aaaaaa);border:1px solid rgba(24,23,22,0.08);color:#181716;text-decoration:none;font-weight:400;font-size:15px;">
+                        Open account portal
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:0;font-size:14px;line-height:1.7;color:#66615a;">
+                  If you did not expect this account, you can ignore this email.
                 </p>
               </td>
             </tr>
