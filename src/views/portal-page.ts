@@ -150,17 +150,18 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
     <title>${escapeHtml(input.title)} | ScanCTRL</title>
     <style>
       :root {
-        --bg: #101113;
-        --panel: rgba(22, 22, 25, 0.92);
-        --panel-alt: rgba(255, 255, 255, 0.03);
-        --text: #f5f3ef;
-        --muted: #b8b2aa;
-        --accent: #cf3f2f;
-        --accent-dark: #8c241a;
-        --danger: #aa3d3d;
+        --bg: #f2f0eb;
+        --panel: rgba(255, 255, 255, 0.92);
+        --panel-alt: #f7f5f1;
+        --text: #181716;
+        --muted: #66615a;
+        --accent: #dedbd5;
+        --accent-dark: #cbc7c0;
+        --danger: #8f5454;
         --success: #2d9d69;
-        --border: rgba(255, 255, 255, 0.08);
-        --shadow: 0 32px 80px rgba(0, 0, 0, 0.35);
+        --border: rgba(18, 18, 18, 0.09);
+        --shadow: 0 30px 80px rgba(84, 78, 67, 0.18);
+        --button-text: #22201d;
       }
       * { box-sizing: border-box; }
       body {
@@ -169,9 +170,9 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
         color: var(--text);
         background:
-          radial-gradient(circle at top left, rgba(207, 63, 47, 0.22), transparent 32%),
-          radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08), transparent 24%),
-          linear-gradient(160deg, #0c0d0f, #17181a 52%, #101214);
+          radial-gradient(circle at top left, rgba(176, 173, 167, 0.38), transparent 30%),
+          radial-gradient(circle at 80% 20%, rgba(255,255,255,0.85), transparent 26%),
+          linear-gradient(160deg, #fbfaf7, #f1eee8 52%, #ebe7de);
         padding: 32px 20px;
       }
       .shell {
@@ -188,17 +189,16 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
       .hero {
         padding: 38px;
         background:
-          linear-gradient(180deg, rgba(255,255,255,0.04), transparent),
-          linear-gradient(145deg, #1a1a1c, #111214);
+          linear-gradient(180deg, rgba(255,255,255,0.65), transparent),
+          linear-gradient(145deg, #f2eee6, #e8e3da);
       }
       .badge {
         display: inline-block;
         padding: 8px 14px;
         border-radius: 999px;
-        background: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.68);
         color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.03em;
         font-size: 12px;
       }
       .hero h1 {
@@ -214,25 +214,15 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         max-width: 28ch;
       }
       .mark {
-        width: 170px;
-        aspect-ratio: 1;
-        margin-top: 42px;
+        width: 172px;
+        margin-top: 36px;
+        display: block;
         border-radius: 28px;
-        background: linear-gradient(160deg, var(--accent), #651710);
-        display: grid;
-        place-items: center;
-      }
-      .mark::after {
-        content: "";
-        width: 82px;
-        height: 82px;
-        border-radius: 22px;
-        border: 10px solid rgba(255,255,255,0.86);
-        border-top-left-radius: 38px;
+        box-shadow: 0 22px 36px rgba(138, 130, 116, 0.16);
       }
       .panel {
         padding: 34px;
-        background: rgba(10, 10, 12, 0.55);
+        background: rgba(255, 255, 255, 0.8);
       }
       .panel h2 {
         margin: 0;
@@ -264,7 +254,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         width: 100%;
         border: 1px solid var(--border);
         border-radius: 14px;
-        background: rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.96);
         color: var(--text);
         padding: 15px 16px;
         font-size: 15px;
@@ -275,16 +265,18 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         border-radius: 14px;
         padding: 14px 18px;
         cursor: pointer;
-        color: white;
+        color: var(--button-text);
         font-size: 14px;
         font-weight: 700;
         background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+        border: 1px solid rgba(24, 23, 22, 0.08);
       }
       .button.ghost {
-        background: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.94);
       }
       .button.danger {
-        background: linear-gradient(180deg, var(--danger), #7c2525);
+        background: linear-gradient(180deg, #bf8a8a, var(--danger));
+        color: #fff;
       }
       .notice {
         margin-bottom: 18px;
@@ -298,9 +290,9 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         color: #d7ffea;
       }
       .notice.error {
-        background: rgba(210,91,91,0.12);
-        border-color: rgba(210,91,91,0.35);
-        color: #ffd4d4;
+        background: rgba(210,91,91,0.1);
+        border-color: rgba(210,91,91,0.26);
+        color: #7e3f3f;
       }
       .topbar {
         display: flex;
@@ -336,7 +328,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
       .pill {
         padding: 8px 12px;
         border-radius: 999px;
-        background: rgba(255,255,255,0.08);
+        background: rgba(24, 23, 22, 0.06);
         font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 0.08em;
@@ -345,7 +337,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         margin: 18px 0;
         padding: 16px;
         border-radius: 16px;
-        background: rgba(0,0,0,0.22);
+        background: rgba(255,255,255,0.7);
         border: 1px solid var(--border);
       }
       .key-block span {
@@ -396,17 +388,17 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         .shell { grid-template-columns: 1fr; }
         .hero, .panel { padding: 28px; }
         .license-header, .device-row, .topbar, .history-row { flex-direction: column; align-items: stretch; }
-        .mark { width: 130px; margin-top: 28px; }
+        .mark { width: 132px; margin-top: 28px; }
       }
     </style>
   </head>
   <body>
     <main class="shell">
       <section class="hero">
-        <span class="badge">ScanCTRL account</span>
+        <span class="badge">StudioAutomation Account</span>
         <h1>${escapeHtml(input.title)}</h1>
         <p>${escapeHtml(input.lead)}</p>
-        <div class="mark" aria-hidden="true"></div>
+        <img class="mark" src="/brand/ScanCTRL.png" alt="StudioAutomation logo" />
       </section>
       <section class="panel">
         ${input.panel}
