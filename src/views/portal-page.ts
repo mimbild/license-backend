@@ -155,8 +155,8 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         --panel-alt: #f7f5f1;
         --text: #181716;
         --muted: #66615a;
-        --accent: #dedbd5;
-        --accent-dark: #cbc7c0;
+        --accent: #b6b6b6;
+        --accent-dark: #aaaaaa;
         --danger: #8f5454;
         --success: #2d9d69;
         --border: rgba(18, 18, 18, 0.09);
@@ -190,7 +190,7 @@ function renderShell(input: { title: string; lead: string; panel: string }) {
         padding: 38px;
         background:
           linear-gradient(180deg, rgba(255,255,255,0.65), transparent),
-          linear-gradient(145deg, #f2eee6, #e8e3da);
+          linear-gradient(145deg, #d7d7d7, #aaaaaa);
       }
       .badge {
         display: inline-block;
