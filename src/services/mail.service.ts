@@ -87,6 +87,33 @@ function renderTemplate(
     });
   }
 
+  if (template === "payment_failed") {
+    return renderPaymentFailedTemplate({
+      title,
+      subscriptionId: String(variables?.subscriptionId ?? ""),
+      providerOrderId: String(variables?.providerOrderId ?? ""),
+      provider: String(variables?.provider ?? ""),
+      graceEndsAt: String(variables?.graceEndsAt ?? ""),
+    });
+  }
+
+  if (template === "access_blocked") {
+    return renderAccessBlockedTemplate({
+      title,
+      reason: String(variables?.reason ?? ""),
+      licenseKey: String(variables?.licenseKey ?? ""),
+      product: String(variables?.product ?? ""),
+    });
+  }
+
+  if (template === "subscription_canceled") {
+    return renderSubscriptionCanceledTemplate({
+      title,
+      subscriptionId: String(variables?.subscriptionId ?? ""),
+      provider: String(variables?.provider ?? ""),
+    });
+  }
+
   const lines = Object.entries(variables ?? {})
     .map(([key, value]) => `<li><strong>${key}</strong>: ${String(value ?? "")}</li>`)
     .join("");
@@ -143,6 +170,64 @@ function renderPlainTextTemplate(
       "",
       `${env.APP_BASE_URL}/portal/login`,
     ].join("\n");
+  }
+
+  if (template === "payment_failed") {
+    const subscriptionId = String(variables?.subscriptionId ?? "");
+    const providerOrderId = String(variables?.providerOrderId ?? "");
+    const provider = String(variables?.provider ?? "");
+    const graceEndsAt = String(variables?.graceEndsAt ?? "");
+
+    return [
+      title,
+      "",
+      "We could not confirm payment for your subscription.",
+      "",
+      subscriptionId ? `Subscription ID: ${subscriptionId}` : "",
+      providerOrderId ? `Order ID: ${providerOrderId}` : "",
+      provider ? `Provider: ${provider}` : "",
+      graceEndsAt ? `Grace period ends: ${graceEndsAt}` : "",
+      "",
+      `Open your account portal: ${env.APP_BASE_URL}/portal/login`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  if (template === "access_blocked") {
+    const reason = String(variables?.reason ?? "");
+    const licenseKey = String(variables?.licenseKey ?? "");
+    const product = String(variables?.product ?? "");
+
+    return [
+      title,
+      "",
+      "Access to your software is currently blocked.",
+      product ? `Product: ${product}` : "",
+      licenseKey ? `License key: ${licenseKey}` : "",
+      reason ? `Reason: ${reason}` : "",
+      "",
+      `Open your account portal: ${env.APP_BASE_URL}/portal/login`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  if (template === "subscription_canceled") {
+    const subscriptionId = String(variables?.subscriptionId ?? "");
+    const provider = String(variables?.provider ?? "");
+
+    return [
+      title,
+      "",
+      "Your subscription has been canceled.",
+      subscriptionId ? `Subscription ID: ${subscriptionId}` : "",
+      provider ? `Provider: ${provider}` : "",
+      "",
+      `Open your account portal: ${env.APP_BASE_URL}/portal/login`,
+    ]
+      .filter(Boolean)
+      .join("\n");
   }
 
   return `${title}\n\n${JSON.stringify(variables ?? {}, null, 2)}`;
@@ -327,6 +412,171 @@ function renderWelcomeTemplate(input: { title: string; email: string }) {
     </table>
   </body>
 </html>`;
+}
+
+function renderPaymentFailedTemplate(input: {
+  title: string;
+  subscriptionId: string;
+  providerOrderId: string;
+  provider: string;
+  graceEndsAt: string;
+}) {
+  const graceEndsText = input.graceEndsAt ? formatMailDate(input.graceEndsAt) : "";
+  const details = [
+    input.subscriptionId ? ["Subscription ID", input.subscriptionId] : null,
+    input.providerOrderId ? ["Order ID", input.providerOrderId] : null,
+    input.provider ? ["Provider", input.provider] : null,
+  ].filter(Boolean) as Array<[string, string]>;
+
+  return renderStatusEmailTemplate({
+    eyebrow: "StudioAutomation Account",
+    heading: "Payment issue detected",
+    lead:
+      "We could not confirm payment for your subscription. Your access may move into grace or require reactivation if payment is not resolved.",
+    body: `
+      <p style="margin:0 0 18px;font-size:16px;line-height:1.7;color:#3d3935;">
+        Please review your subscription and billing details as soon as possible.
+      </p>
+      ${renderDetailTable(details)}
+      <p style="margin:22px 0 0;font-size:14px;line-height:1.7;color:#66615a;">
+        ${graceEndsText ? `If applicable, your grace period ends at ${escapeHtml(graceEndsText)}.` : ""}
+      </p>
+    `,
+    buttonLabel: "Open account portal",
+  });
+}
+
+function renderAccessBlockedTemplate(input: {
+  title: string;
+  reason: string;
+  licenseKey: string;
+  product: string;
+}) {
+  const details = [
+    input.product ? ["Product", input.product] : null,
+    input.licenseKey ? ["License key", input.licenseKey] : null,
+    input.reason ? ["Reason", input.reason] : null,
+  ].filter(Boolean) as Array<[string, string]>;
+
+  return renderStatusEmailTemplate({
+    eyebrow: "StudioAutomation Account",
+    heading: "Access blocked",
+    lead:
+      "Access to your software is currently blocked. Sign in to your account portal to review the issue and resolve it.",
+    body: `
+      <p style="margin:0 0 18px;font-size:16px;line-height:1.7;color:#3d3935;">
+        This usually happens when a subscription is no longer active or a license has been restricted.
+      </p>
+      ${renderDetailTable(details)}
+    `,
+    buttonLabel: "Review account",
+  });
+}
+
+function renderSubscriptionCanceledTemplate(input: {
+  title: string;
+  subscriptionId: string;
+  provider: string;
+}) {
+  const details = [
+    input.subscriptionId ? ["Subscription ID", input.subscriptionId] : null,
+    input.provider ? ["Provider", input.provider] : null,
+  ].filter(Boolean) as Array<[string, string]>;
+
+  return renderStatusEmailTemplate({
+    eyebrow: "StudioAutomation Account",
+    heading: "Subscription canceled",
+    lead:
+      "Your subscription has been canceled. Depending on your billing state, access may continue temporarily or stop immediately.",
+    body: `
+      <p style="margin:0 0 18px;font-size:16px;line-height:1.7;color:#3d3935;">
+        You can sign in to your account portal to review your licenses and any remaining access.
+      </p>
+      ${renderDetailTable(details)}
+    `,
+    buttonLabel: "Open account portal",
+  });
+}
+
+function renderStatusEmailTemplate(input: {
+  eyebrow: string;
+  heading: string;
+  lead: string;
+  body: string;
+  buttonLabel: string;
+}) {
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${escapeHtml(input.heading)}</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f3f4f4;font-family:'Poppins','Avenir Next','Helvetica Neue',Arial,sans-serif;color:#181716;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f4;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:28px;overflow:hidden;border:1px solid rgba(18,18,18,0.08);box-shadow:0 24px 60px rgba(84,78,67,0.14);">
+            <tr>
+              <td style="padding:40px 40px 28px;background:linear-gradient(145deg,#d7d7d7,#aaaaaa);">
+                <div style="display:inline-block;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,0.72);color:#66615a;font-size:12px;letter-spacing:0.03em;">
+                  ${escapeHtml(input.eyebrow)}
+                </div>
+                <h1 style="margin:22px 0 14px;font-family:'Manrope','Avenir Next','Helvetica Neue',Arial,sans-serif;font-size:42px;line-height:0.98;letter-spacing:-0.04em;color:#181716;">
+                  ${escapeHtml(input.heading)}
+                </h1>
+                <p style="margin:0;max-width:32ch;font-size:17px;line-height:1.65;color:#544f49;">
+                  ${escapeHtml(input.lead)}
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:34px 40px 40px;">
+                ${input.body}
+                <table role="presentation" cellspacing="0" cellpadding="0" style="margin:22px 0 0;">
+                  <tr>
+                    <td>
+                      <a href="${escapeHtml(`${env.APP_BASE_URL}/portal/login`)}" style="display:inline-block;padding:15px 22px;border-radius:14px;background:linear-gradient(180deg,#c2c2c2,#aaaaaa);border:1px solid rgba(24,23,22,0.08);color:#181716;text-decoration:none;font-weight:400;font-size:15px;">
+                        ${escapeHtml(input.buttonLabel)}
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+function renderDetailTable(items: Array<[string, string]>) {
+  if (items.length === 0) {
+    return "";
+  }
+
+  const rows = items
+    .map(
+      ([label, value]) => `
+        <tr>
+          <td style="padding:12px 14px;border-bottom:1px solid rgba(18,18,18,0.08);font-size:13px;color:#66615a;white-space:nowrap;vertical-align:top;">
+            ${escapeHtml(label)}
+          </td>
+          <td style="padding:12px 14px;border-bottom:1px solid rgba(18,18,18,0.08);font-size:14px;color:#181716;vertical-align:top;word-break:break-word;">
+            ${escapeHtml(value)}
+          </td>
+        </tr>
+      `,
+    )
+    .join("");
+
+  return `
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1px solid rgba(18,18,18,0.08);border-radius:16px;overflow:hidden;background:#f7f7f7;">
+      ${rows}
+    </table>
+  `;
 }
 
 function escapeHtml(value: string) {
