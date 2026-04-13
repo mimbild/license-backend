@@ -12,6 +12,7 @@ import { publicRouter } from "./routes/public.routes";
 
 export function createApp() {
   const app = express();
+  app.set("trust proxy", 1);
 
   app.use(
     pinoHttp({
